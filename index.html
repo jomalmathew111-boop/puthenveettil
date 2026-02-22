@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Puthenveettil House - Family Tree</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    background: linear-gradient(to right,#134E5E,#71B280);
+    overflow:auto;
+}
+
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 20px;
+    color:white;
+    flex-wrap:wrap;
+}
+
+.search-container{
+    display:flex;
+    gap:5px;
+}
+
+input{
+    padding:6px;
+    border-radius:5px;
+    border:none;
+}
+
+button{
+    padding:6px 10px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    background:#1f3c88;
+    color:white;
+}
+
+button:hover{ background:#163172; }
+
+.tree-wrapper{
+    width:100vw;
+    height:85vh;
+    overflow:auto;
+    cursor:grab;
+}
+
+.tree{
+    transform-origin:0 0;
+    transition: transform 0.1s ease;
+    padding:20px;
+}
+
+.tree ul{
+    list-style:none;
+    padding-left:30px;
+    position:relative;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    transition:max-height 0.4s ease, opacity 0.3s ease;
+}
+
+.tree ul.open{
+    max-height:5000px;
+    opacity:1;
+}
+
+.tree li{
+    position:relative;
+    margin:15px 0;
+    padding-left:20px;
+}
+
+.tree li::before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    width:2px;
+    height:100%;
+    background:#ccc;
+}
+
+.tree li::after{
+    content:'';
+    position:absolute;
+    top:20px;
+    left:0;
+    width:20px;
+    height:2px;
+    background:#ccc;
+}
+
+.tree > ul > li::before,
+.tree > ul > li::after{
+    display:none;
+}
+
+.member{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px 14px;
+    border-radius:6px;
+    box-shadow:0 3px 6px rgba(0,0,0,0.2);
+    cursor:pointer;
+    transition:0.3s;
+    color:white;
+    min-width:320px;
+}
+
+.member:hover{
+    transform:scale(1.05);
+}
+
+.photo{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    background:#ffffff55;
+    border:2px solid white;
+    object-fit:cover;
+    cursor:pointer;
+}
+
+.details{
+    display:flex;
+    flex-direction:column;
+    font-size:12px;
+    line-height:1.4;
+}
+
+.name{
+    font-weight:bold;
+    font-size:14px;
+}
+
+.gen-0{ background:#2c3e50; }
+.gen-1{ background:#8e44ad; }
+.gen-2{ background:#2980b9; }
+.gen-3{ background:#27ae60; }
+.gen-4{ background:#e67e22; }
+.gen-5{ background:#c0392b; }
+
+.highlight{
+    box-shadow:0 0 15px 5px yellow;
+    animation:pulse 1s infinite alternate;
+}
+
+@keyframes pulse{
+    from{box-shadow:0 0 10px 3px yellow;}
+    to{box-shadow:0 0 20px 8px orange;}
+}
+
+/* 🎉 CELEBRATION BANNER */
+
+.celebration-banner{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:linear-gradient(90deg,#ff512f,#dd2476,#ff512f);
+color:white;
+font-weight:bold;
+font-size:18px;
+padding:10px 0;
+z-index:9999;
+overflow:hidden;
+white-space:nowrap;
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+.banner-text{
+display:inline-block;
+padding-left:100%;
+animation:scrollBanner 18s linear infinite;
+}
+
+@keyframes scrollBanner{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2 style="margin:0;">Puthenveettil House</h2>
+    <div class="search-container">
+        <input type="text" id="searchBox" placeholder="Search anything...">
+        <button onclick="searchPerson()">Search</button>
+    </div>
+</header>
+
+<div class="tree-wrapper" id="treeWrapper">
+    <div class="tree" id="tree">
+        <ul id="treeRoot" class="open"></ul>
+    </div>
+</div>
+
+<script>
+
+/* PHOTO STORAGE */
+
+function getPhotoKey(name){
+return "family_photo_"+name;
+}
+
+/* DATA */
+
+const dobData={
+"JOMAL":"26th August 1995",
+"JOMET":"27th March 1999",
+"AKHIL":"16th April 2000",
+"SUNNY":"9th February 1965",
+"JOLLY":"8th April 1971",
+"NOEL":"6th March 1994",
+"JOJI":"11th March 1973",
+"BINDHU":"21st October 1975",
+"NITHIL":"20th January 1988",
+"NIMMY":"6th March 1989",
+"NORVIN":"1st December 2019",
+"ALEX":"13th January 1983",
+"ANOOP":"22nd January 1985",
+"NOVAN":"14th September 2024",
+"NYJIL":"08th July 1981",
+"JISHA":"14th August 1985",
+"ELSA":"13th January 2014",
+"JEROME":"27th January 2019",
+"MERLIN":"24th July 1989",
+"NOVLIN":"05th February 2019",
+"HANNAH":"18th July 2023",
+"GEORGE":"10th March 1954",
+"ANJELINA":"23th August 2006",
+"SHONE":"26th September 2003",
+"ANJANA":"05th August 1994",
+"PRINCE":"23rd June 1992",
+"GABRIEL":"09th August 2024",
+"TOMI":"17th May 1963",
+"LUSAMMA":"4th March 1966",
+"ATHIRA":"27th April 1993",
+"EBY":"7th May 1992",
+"AGNES":"9th March 2024",
+"CHACHAN":"9th July 1930",
+"HONEY":"08th February 1958"
+};
+
+const weddingData={
+"SUNNY & JOLLY":"26th November 1994",
+"NITHIL & NIMMY":"21st April 2018",
+"GEORGE & HONEY":"28th April 1980",
+"JISHA & ALEX":"25th August 2012",
+"ANJANA & PRINCE":"07th February 2022",
+"TOMI & LUSAMMA":"29th June 1992",
+"JOJI & BINDHU":"17th June 2002",
+"NYJIL & MERLIN":"26th December 2013"
+};
+
+const familyNameData={
+"JOLLY":"Poomkudiyil",
+"BABY":"Edakkattil",
+"SOPHY":"Arackal",
+"JOSE":"Kizhakkarakkattu",
+"KURIAN":"Thuruthimattam",
+"AMMACHI":"Pulickal",
+"HONEY":"Alappattukunnel",
+"SINI":"Pallattu",
+"LUSAMMA":"Thanavayalil",
+"BINDHU":"Manivayalil",
+"PRINCE":"Thondattuparambil",
+"EBY":"Erathara",
+"THANKACHAN":"Tharakunnel"
+};
+
+/* 🎉 CELEBRATION CHECK */
+
+function checkCelebrations(){
+
+let today=new Date();
+let day=today.getDate();
+let month=today.toLocaleString('default',{month:'long'});
+
+let messages=[];
+
+/* birthdays */
+
+for(let person in dobData){
+
+let dob=dobData[person];
+if(!dob) continue;
+
+if(dob.includes(day) && dob.toUpperCase().includes(month.toUpperCase())){
+messages.push("🎂 Happy Birthday "+person+" 🎉");
+}
+}
+
+/* anniversaries */
+
+for(let couple in weddingData){
+
+let wed=weddingData[couple];
+if(!wed) continue;
+
+if(wed.includes(day) && wed.toUpperCase().includes(month.toUpperCase())){
+messages.push("💍 Happy Wedding Anniversary "+couple+" 💖");
+}
+}
+
+if(messages.length>0){
+
+let banner=document.createElement("div");
+banner.className="celebration-banner";
+
+let text=document.createElement("div");
+text.className="banner-text";
+
+text.innerText=messages.join(" ⭐ ");
+
+banner.appendChild(text);
+document.body.appendChild(banner);
+
+document.body.style.marginTop="55px";
+}
+}
+
+/* FULL FAMILY */
+
+const familyData={
+name:"Chachan & Ammachi",
+children:[
+{name:"KUTTYAMMA & JOSE",children:[
+{name:"JOJI & BINDHU",children:[{name:"SHONE"},{name:"ANJELINA"}]},
+{name:"JIJU & SIJI",children:[{name:"ALPHONSA"},{name:"JOHAN"},{name:"TESSA"}]}
+]},
+{name:"ROSAMMA & KURIAN",children:[
+{name:"ASHA & JOJI",children:[{name:"AJITH"},{name:"EVANA"}]},
+{name:"AJESH & MANJU",children:[{name:"ANJELA"},{name:"AMIT"},{name:"ANRIYA"},{name:"ADON"}]},
+{name:"ANOOP"}
+]},
+{name:"GEORGE & HONEY",children:[
+{name:"NYJIL & MERLIN",children:[{name:"NOVLIN"},{name:"HANNAH"}]},
+{name:"NITHIL & NIMMY",children:[{name:"NORVIN"},{name:"NOVAN"}]},
+{name:"NOEL"}
+]},
+{name:"LEELAMMA & BABY",children:[
+{name:"JINTO & SHERLY",children:[{name:"MARYA"},{name:"EVENA"},{name:"JACOB"}]},
+{name:"JISHA & ALEX",children:[{name:"ELSA"},{name:"JEROME"}]}
+]},
+{name:"JOSE & SOPHY",children:[
+{name:"MINNU & JIBIN"},
+{name:"DONA & BESTIAN",children:[{name:"EDAN"},{name:"ERICK"}]},
+{name:"IWIN"}
+]},
+{name:"VALSAMMA & THANKACHAN",children:[
+{name:"ARUN & SNEHA",children:[{name:"ESTHER"}]},
+{name:"KIRAN & JOSTIN",children:[{name:"NORAH"},{name:"SARAH"}]},
+{name:"VARUN"}
+]},
+{name:"TOMI & LUSAMMA",children:[
+{name:"ATHIRA & EBY",children:[{name:"AGNES"}]},
+{name:"ANJANA & PRINCE",children:[{name:"GABRIEL"}]},
+{name:"AKHIL"}
+]},
+{name:"SUNNY & JOLLY",children:[{name:"JOMAL"},{name:"JOMET"}]},
+{name:"SAJI & SINI",children:[{name:"JOEL"},{name:"JAKE"},{name:"JADE"},{name:"JOHANNA"}]},
+{name:"SABU & BLAICY",children:[{name:"DON"},{name:"KARREN"},{name:"JOHAN"}]}
+]
+};
+
+/* BUILD TREE — unchanged */
+
+function buildTree(node,parent,generation){
+
+let li=document.createElement("li");
+let div=document.createElement("div");div.dataset.name = node.name.toUpperCase();
+div.className="member gen-"+generation;
+
+let photo=document.createElement("img");
+photo.className="photo";
+
+/* DEFAULT CLOUD PHOTO FOR JOMAL */
+
+let defaultPhotos={
+"JOMAL":"https://www.dropbox.com/scl/fi/6lhxeuazi96ywzp6wt3db/IMG_20251114_210808.jpg?rlkey=2k60l9lpdp2epkiihf68deab8&raw=1"
+};
+
+let savedPhoto=localStorage.getItem(getPhotoKey(node.name));
+
+if(savedPhoto){
+photo.src=savedPhoto;
+}else if(defaultPhotos[node.name.toUpperCase()]){
+photo.src=defaultPhotos[node.name.toUpperCase()];
+}
+
+photo.onclick=function(e){
+e.stopPropagation();
+
+let input=document.createElement("input");
+input.type="file";
+input.accept="image/*";
+
+input.onchange=function(){
+
+let file=input.files[0];
+let reader=new FileReader();
+
+reader.onload=function(){
+photo.src=reader.result;
+localStorage.setItem(getPhotoKey(node.name),reader.result);
+};
+
+reader.readAsDataURL(file);
+};
+
+input.click();
+};
+
+let details=document.createElement("div");
+details.className="details";
+
+let name=document.createElement("div");
+name.className="name";
+name.innerText=node.name;
+
+let upper=node.name.toUpperCase();
+
+if(upper.includes("&")){
+
+let secondName=upper.split("&")[1].trim();
+
+let familyLine=document.createElement("div");
+familyLine.innerText= secondName+" - House Name : "+(familyNameData[secondName] || "");
+
+let dobLine=document.createElement("div");
+
+let people=upper.split("&");
+
+let dobText=people.map(p=>{
+let person=p.trim();
+return dobData[person] ? person+": "+dobData[person] : person+": ";
+}).join(" | ");
+
+dobLine.innerText="DOB: "+dobText;
+
+let weddingLine=document.createElement("div");
+weddingLine.innerText="Wedding : "+(weddingData[upper] || "");
+
+details.appendChild(name);
+details.appendChild(familyLine);
+details.appendChild(dobLine);
+details.appendChild(weddingLine);
+
+}else{
+
+let dob=document.createElement("div");
+dob.innerText="DOB: "+(dobData[upper] || "");
+
+details.appendChild(name);
+details.appendChild(dob);
+}
+
+div.appendChild(photo);
+div.appendChild(details);
+li.appendChild(div);
+
+if(node.children && node.children.length>0){
+
+let ul=document.createElement("ul");
+
+div.onclick=function(){
+ul.classList.toggle("open");
+};
+
+node.children.forEach(child=>{
+buildTree(child,ul,generation+1);
+});
+
+li.appendChild(ul);
+}
+
+parent.appendChild(li);
+}
+
+/* RUN */
+
+checkCelebrations();
+buildTree(familyData,document.getElementById("treeRoot"),0);
+
+/* LIVE SEARCH */
+
+document.getElementById("searchBox").addEventListener("input", searchPerson);
+
+function searchPerson(){
+
+let keyword = document
+.getElementById("searchBox")
+.value.trim()
+.toUpperCase();
+
+/* REMOVE OLD HIGHLIGHTS */
+
+document.querySelectorAll(".member")
+.forEach(m=>m.classList.remove("highlight"));
+
+/* COLLAPSE ENTIRE TREE */
+
+document.querySelectorAll(".tree ul")
+.forEach(ul=>{
+if(ul.id !== "treeRoot"){
+ul.classList.remove("open");
+}
+});
+
+if(!keyword) return;
+
+/* FIND EXACT MATCH */
+
+let match = null;
+
+document.querySelectorAll(".member")
+.forEach(div=>{
+
+let name = div.dataset.name || "";
+
+if(name.includes(keyword) && !match){
+match = div;
+}
+
+});
+
+if(!match){
+alert("No family member found");
+return;
+}
+
+/* OPEN ONLY ITS PARENT CHAIN */
+
+let current = match;
+
+while(current){
+
+let li = current.closest("li");
+if(!li) break;
+
+let parentUL = li.parentElement;
+
+if(parentUL){
+parentUL.classList.add("open");
+}
+
+let parentLI = parentUL.closest("li");
+
+current = parentLI
+? parentLI.querySelector(".member")
+: null;
+}
+
+/* HIGHLIGHT */
+
+match.classList.add("highlight");
+
+/* SCROLL INTO VIEW */
+
+match.scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+
+}
+
+/* ZOOM */
+
+let scale=1,posX=0,posY=0;
+let tree=document.getElementById("tree");
+let wrapper=document.getElementById("treeWrapper");
+
+
+let isDragging=false,startX,startY;
+
+wrapper.addEventListener("mousedown",e=>{
+isDragging=true;
+startX=e.clientX-posX;
+startY=e.clientY-posY;
+wrapper.style.cursor="grabbing";
+});
+
+wrapper.addEventListener("mouseup",()=>{
+isDragging=false;
+wrapper.style.cursor="grab";
+});
+
+wrapper.addEventListener("mousemove",e=>{
+if(!isDragging) return;
+posX=e.clientX-startX;
+posY=e.clientY-startY;
+updateTransform();
+});
+
+function updateTransform(){
+tree.style.transform=`translate(${posX}px,${posY}px) scale(${scale})`;
+}
+
+</script>
+
+</body>
+</html>
