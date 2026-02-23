@@ -296,7 +296,11 @@ for(let person in dobData){
 let dob=dobData[person];
 if(!dob) continue;
 
-if(dob.includes(day) && dob.toUpperCase().includes(month.toUpperCase())){
+let parts = dob.split(" ");
+let dobDay = parseInt(parts[0]);
+let dobMonth = parts[1];
+
+if(dobDay === day && dobMonth.toUpperCase() === month.toUpperCase()){
 messages.push("🎂 Happy Birthday "+person+" 🎉");
 }
 }
@@ -308,7 +312,11 @@ for(let couple in weddingData){
 let wed=weddingData[couple];
 if(!wed) continue;
 
-if(wed.includes(day) && wed.toUpperCase().includes(month.toUpperCase())){
+let parts = wed.split(" ");
+let wedDay = parseInt(parts[0]);
+let wedMonth = parts[1];
+
+if(wedDay === day && wedMonth.toUpperCase() === month.toUpperCase()){
 messages.push("💍 Happy Wedding Anniversary "+couple+" 💖");
 }
 }
